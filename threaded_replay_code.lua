@@ -17,7 +17,6 @@ replay_load_code = [[
 	local replay_file_list = love.filesystem.getDirectoryItems("replays")
 	local binser = require "libs/binser"
 	require "funcs"
-	print("some io")
 	for i=1, #replay_file_list do
 		local data = love.filesystem.read("replays/"..replay_file_list[i])
 		local new_replay = binser.deserialize(data)[1]
@@ -36,7 +35,6 @@ replay_load_code = [[
 			return replays[a]["timestamp"] > replays[b]["timestamp"]
 		end)
 	end
-	print("load")
     love.thread.getChannel( 'replays' ):push( replays )
     love.thread.getChannel( 'replay_tree' ):push( replay_tree )
     love.thread.getChannel( 'dict_ref' ):push( dict_ref )
