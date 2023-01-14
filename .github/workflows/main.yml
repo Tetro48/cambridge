@@ -18,6 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Version naming
+        run: |
+          if [[ "$GITHUB_REF" =~ ^refs/heads/* ]]; then
+            echo 'version = "build-$GITHUB_RUN_NUMBER"' > load/version.lua
+          else
+            echo 'version = "${GITHUB_REF#refs/tags/}"' > load/version.lua
+          fi
       - name: Assemble
         run: |
           zip -r9 cambridge.love libs load res scene tetris conf.lua *.lua -x "res/img/rpc/*" res/bgm/pacer_test.mp3 "libs/discord-rpc*" "libs/discordGameSDK/*"
@@ -64,3 +71,35 @@ jobs:
           rm -f dist/win32/LICENSE.md
           rm -rf dist/win32/libs
       
+  release-upload:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: "Grab Artifacts"
+      uses: actions/checkout@v3
+      uses: actions/download-artifact@v3
+      with:
+        path: dist/
+    - name: "Pre-release"
+      uses: actions/create-release@v1
+      id: create_release
+      if: startsWith(github.ref, 'refs/heads/')
+      with:
+        prerelease: true
+        generate_release_notes: true
+        files: |
+            dist/cambridge_other.zip
+            dist/cambridge_windows_x64.zip
+            dist/cambridge_windows_x86.zip
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+    - name: "Release"
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: |
+            dist/cambridge_other.zip
+            dist/cambridge_windows_x64.zip
+            dist/cambridge_windows_x86.zip
