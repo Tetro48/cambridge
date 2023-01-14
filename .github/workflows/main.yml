@@ -93,11 +93,11 @@ jobs:
       if: startsWith(github.ref, 'refs/heads/')
       with:
         tag: "build-${{ github.run_number }}"
-    - name: Rename received artifacts
+    - name: Re-package the artifacts
       run: |
-        mv dist/cambridge_other dist/cambridge_other.zip
-        mv dist/cambridge_windows_x64 dist/cambridge_windows_x64.zip
-        mv dist/cambridge_windows_x86 dist/cambridge_windows_x86.zip
+        zip -r9 cambridge_other.zip dist/cambridge_other
+        zip -r9 cambridge_windows_x64.zip dist/cambridge_windows_x64
+        zip -r9 cambridge_windows_x86.zip dist/cambridge_windows_x86
     - name: "Pre-release"
       uses: softprops/action-gh-release@v1
       id: create_release
