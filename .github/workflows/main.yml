@@ -92,8 +92,6 @@ jobs:
             dist/cambridge_other.zip
             dist/cambridge_windows_x64.zip
             dist/cambridge_windows_x86.zip
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
     - name: "Release"
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
