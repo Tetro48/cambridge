@@ -106,14 +106,10 @@ jobs:
         prerelease: true
         generate_release_notes: true
         tag_name: "build-${{ github.run_number }}"
-        files: |
-          dist/cambridge_other.zip
-          dist/cambridge_windows_x64.zip
-          dist/cambridge_windows_x86.zip
+        files: dist/cambridge_*
     - name: "Release"
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/v*')
       with:
         generate_release_notes: true
-        files: |
-          dist/cambridge_*
+        files: dist/cambridge_*
