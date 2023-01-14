@@ -83,7 +83,7 @@ jobs:
       with:
         path: dist/
     - name: "Pre-release"
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       id: create_release
       if: startsWith(github.ref, 'refs/heads/')
       with:
