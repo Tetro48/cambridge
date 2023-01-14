@@ -76,8 +76,8 @@ jobs:
     permissions:
       contents: write
     steps:
-    - name: "Grab Artifacts"
       uses: actions/checkout@v3
+    - name: "Grab Artifacts"
       uses: actions/download-artifact@v3
       with:
         path: dist/
