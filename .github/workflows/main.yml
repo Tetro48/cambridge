@@ -73,6 +73,7 @@ jobs:
       
   release-upload:
     runs-on: ubuntu-latest
+    needs: assembly
     permissions:
       contents: write
     steps:
