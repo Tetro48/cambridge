@@ -1,6 +1,8 @@
 name: 'Custom Assembly'
 on: 
   push:
+    branches:
+      - '*'
     tags-ignore:
       build-*
   pull_request:
