@@ -111,9 +111,7 @@ function CreditsScene:new()
 end
 
 function CreditsScene:update()
-    if love.window.hasFocus() then
-        self.frames = self.frames + self.scroll_speed
-    end
+    self.frames = self.frames + self.scroll_speed
     if self.frames >= self.final_y + 150 then
         playSE("mode_decide")
         scene = TitleScene()
@@ -137,11 +135,7 @@ function CreditsScene:render()
     local align = alignment_table[4-credits_pos]
 
     love.graphics.setColor(1, 1, 1, 1)
-	drawSizeIndependentImage(
-		backgrounds[19],
-		0, 0, 0,
-        640, 480
-    )
+	drawBackground(19)
 
     love.graphics.setFont(font_3x5_4)
     love.graphics.printf("Cambridge Credits", text_x, 500 - offset, 320, align)

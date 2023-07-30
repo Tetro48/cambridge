@@ -283,7 +283,7 @@ function Marathon2020Game:sectionPassed(old_level, new_level)
 		)
 	else
 		return (
-			(new_level < 2001 and math.floor(old_level / 100) < math.floor(new_level / 100)) or
+			(new_level < 2000 and math.floor(old_level / 100) < math.floor(new_level / 100)) or
 			(new_level >= 2020)
 		)
 	end
@@ -353,14 +353,9 @@ function Marathon2020Game:updateSectionTimes(old_level, new_level)
 		self.section_start_time = self.frames
 
 		if (
-			self.section_status[section - 1] == "cool" and
-			self.secondary_section_times[section] <= self.secondary_section_times[section - 1] + 120 and
-			self.secondary_section_times[section] < cool_cutoffs[self.delay_level]
+			(self.secondary_section_times[section] < cool_cutoffs[self.delay_level]) and
+		  	(section == 1 or self.secondary_section_times[section] <= self.secondary_section_times[section - 1] + 120)
 		) then
-			sectionCool(section)
-		elseif self.section_status[section - 1] == "cool" then
-			table.insert(self.section_status, "none")
-		elseif self.secondary_section_times[section] < cool_cutoffs[self.delay_level] then
 			sectionCool(section)
 		else
 			table.insert(self.section_status, "none")

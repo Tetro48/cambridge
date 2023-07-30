@@ -13,7 +13,6 @@ function ReplayScene:new(replay, game_mode, ruleset)
 	config.gamesettings = replay["gamesettings"]
 	if replay["delayed_auto_shift"] then config.das = replay["delayed_auto_shift"] end
 	if replay["auto_repeat_rate"] then config.arr = replay["auto_repeat_rate"] end
-
 	if replay["das_cut_delay"] then config.dcd = replay["das_cut_delay"] end
 	love.math.setRandomSeed(replay["random_low"], replay["random_high"])
 	love.math.setRandomState(replay["random_state"])
@@ -40,10 +39,13 @@ function ReplayScene:new(replay, game_mode, ruleset)
 		hold=false,
 	}
 	self.paused = false
-	self.replay_index = 1
-	self.replay_speed = 1
 	self.frames = 0
 	self.relative_frames = 0
+	self.game.pause_count = replay["pause_count"]
+	self.game.pause_time = replay["pause_time"]
+	self.replay_index = 1
+	self.replay_speed = 1
+	self.show_invisible = false
 	DiscordRPC:update({
 		details = "Viewing a replay",
 		state = self.game.name,
@@ -66,7 +68,7 @@ function ReplayScene:update()
 		config.sfx_volume = 0	--This is to stop blasting your ears every time you load a state.
 		frames_left = savestate_frames
 	end
-	if love.window.hasFocus() and (not self.paused or frame_steps > 0) then
+	if not self.paused or frame_steps > 0 then
 		if frame_steps > 0 then
 			self.game.ineligible = self.rerecord or self.game.ineligible
 			frame_steps = frame_steps - 1
@@ -136,8 +138,29 @@ function ReplayScene:render()
 	else
 		love.graphics.printf("REPLAY", 0, 0, 635, "right")
 	end
+	local pauses_y_coordinate = 23
 	if self.replay_speed > 1 then
+		pauses_y_coordinate = pauses_y_coordinate + 20
 		love.graphics.printf(self.replay_speed.."X", 0, 20, 635, "right")
+	end
+	love.graphics.setFont(font_3x5_2)
+	if self.game.pause_time and self.game.pause_count then
+		if self.game.pause_time > 0 or self.game.pause_count > 0 then
+			love.graphics.printf(string.format(
+				"%d PAUSE%s (%s)",
+				self.game.pause_count,
+				self.game.pause_count == 1 and "" or "S",
+				formatTime(self.game.pause_time)
+			), 0, pauses_y_coordinate, 635, "right")
+		end
+	else
+		love.graphics.printf("?? PAUSES (--:--.--)", 0, pauses_y_coordinate, 635, "right")
+	end
+	if self.show_invisible then 
+		self.game.grid:draw()
+		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.setFont(font_3x5_3)
+		love.graphics.printf("SHOW INVIS", 64, 60, 160, "center")
 	end
 end
 
@@ -150,6 +173,8 @@ function ReplayScene:onInputPress(e)
 		e.input == "mode_exit" or
 		e.input == "retry"
  	) then
+		switchBGM(nil)
+		pitchBGM(1)
 		self.game:onExit()
 		loadSave()
 		love.math.setRandomSeed(os.time())
@@ -193,11 +218,15 @@ function ReplayScene:onInputPress(e)
 		if self.replay_speed < 1 then
 			self.replay_speed = 1
 		end
+		pitchBGM(self.replay_speed)
 	elseif e.input == "right" then
 		self.replay_speed = self.replay_speed + 1
 		if self.replay_speed > 99 then
 			self.replay_speed = 99
 		end
+		pitchBGM(self.replay_speed)
+	elseif e.input == "hold" then
+		self.show_invisible = not self.show_invisible
 	end
 end
 

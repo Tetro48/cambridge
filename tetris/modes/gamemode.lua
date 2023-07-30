@@ -178,6 +178,8 @@ function GameMode:saveReplay()
 	replay["auto_repeat_rate"] = config.arr
 	replay["das_cut_delay"] = config.dcd
 	replay["timestamp"] = os.time()
+	replay["pause_count"] = self.pause_count
+	replay["pause_time"] = self.pause_time
 	if love.filesystem.getInfo("replays") == nil then
 		love.filesystem.createDirectory("replays")
 	end
@@ -445,6 +447,7 @@ end
 
 function GameMode:onGameOver()
 	switchBGM(nil)
+	pitchBGM(1)
 	local alpha = 0
 	local animation_length = 120
 	if self.game_over_frames < animation_length then
@@ -1028,12 +1031,10 @@ function GameMode:drawSectionTimesWithSplits(current_section, section_limit)
 end
 
 function GameMode:drawBackground()
+	local id = self:getBackground()
+	if type(id) == "number" then id = clamp(id, 0, #backgrounds) end
 	love.graphics.setColor(1, 1, 1, 1)
-	drawSizeIndependentImage(
-		backgrounds[self:getBackground()],
-		0, 0, 0,
-		640, 480
-	)
+	drawBackground(id)
 end
 
 function GameMode:drawFrame()

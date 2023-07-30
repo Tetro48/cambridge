@@ -5,7 +5,6 @@ function love.load()
 	love.graphics.printf("Please wait...\nLoading...", 160, 160, 320, "center")
 	love.graphics.present()
 	love.graphics.clear()
-	math.randomseed(os.time())
 	highscores = {}
 	require "load.rpc"
 	require "load.graphics"
@@ -28,6 +27,11 @@ function love.load()
 		
 	-- used for screenshots
 	GLOBAL_CANVAS = love.graphics.newCanvas()
+
+	-- aliasing to prevent people using math.random by accident
+	math.random = love.math.random
+	math.randomseed = love.math.setRandomSeed
+	math.randomseed(os.time())
 
 	-- init config
 	initConfig()
@@ -926,21 +930,15 @@ function love.wheelmoved(x, y)
 	scene:onInputPress({input=nil, type="wheel", x=x, y=y})
 end
 
-function love.focus(f)
-	if f then
-		resumeBGM(true)
-	else
-		pauseBGM(true)
-	end
-end
-
 ---@param w integer
 ---@param h integer
 function love.resize(w, h)
-		GLOBAL_CANVAS:release()
-		GLOBAL_CANVAS = love.graphics.newCanvas(w, h)
+	GLOBAL_CANVAS:release()
+	GLOBAL_CANVAS = love.graphics.newCanvas(w, h)
 end
 
+-- higher values of TARGET_FPS will make the game run "faster"
+-- since the game is mostly designed for 60 FPS
 local TARGET_FPS = 60
 local FRAME_DURATION = 1.0 / TARGET_FPS
 
@@ -961,6 +959,7 @@ function getTargetFPS()
 	return TARGET_FPS
 end
 
+-- custom run function; optimizes game by syncing draw/update calls
 function love.run()
 	if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
 

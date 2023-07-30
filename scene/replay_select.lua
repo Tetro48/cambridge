@@ -85,7 +85,14 @@ function insertReplay(replay)
 	if dict_ref[mode_name] ~= nil and mode_name ~= "znil" then
 		table.insert(replay_tree[dict_ref[mode_name] ], #replays)
 	end
-	table.insert(replay_tree[1], #replays)
+	local branch_index = 0
+	for index, value in ipairs(replay_tree) do
+		if value.name == "All" then
+			branch_index = index
+			break
+		end
+	end
+	table.insert(replay_tree[branch_index], #replays)
 end
 function sortReplays()
 	if not replay_tree then return end
@@ -100,8 +107,6 @@ function sortReplays()
 end
 
 function ReplaySelectScene:update()
-	switchBGM(nil) -- experimental
-	
 	if not loaded_replays then
 		self.state_string = love.thread.getChannel('load_state'):peek()
 		local replay = popFromChannel('replay')
@@ -169,21 +174,16 @@ function ReplaySelectScene:update()
 end
 
 function ReplaySelectScene:render()
-	drawSizeIndependentImage(
-		backgrounds[0],
-		0, 0, 0,
-		640, 480
-	)
-	
+	drawBackground(0)
 
 	-- Same graphic as mode select
 	--love.graphics.draw(misc_graphics["select_mode"], 20, 40)
 
-	love.graphics.setFont(font_3x5_4)
+	love.graphics.setFont(font_8x11)
 	if loaded_replays then
 		local b = CursorHighlight(0, 35, 40, 30)
 		love.graphics.setColor(1, 1, b, 1)
-		love.graphics.printf("<-", 0, 35, 40, "center")
+		love.graphics.printf("<-", font_3x5_4, 0, 35, 40, "center")
 		love.graphics.setColor(1, 1, 1, 1)
 	end
 	if not loaded_replays then
