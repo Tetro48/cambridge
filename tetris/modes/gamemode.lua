@@ -156,6 +156,10 @@ function GameMode:saveReplay()
 		end
 	end
 	love.filesystem.write(replay_name, binser.serialize(replay))
+	if loaded_replays then
+		insertReplay(replay)
+		sortReplays()
+	end
 end
 
 function GameMode:addReplayInput(inputs)

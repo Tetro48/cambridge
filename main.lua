@@ -12,7 +12,9 @@ function love.load()
 	loadSave()
 	require "funcs"
 	require "scene"
-	
+
+	require "threaded_replay_code"
+
 	--config["side_next"] = false
 	--config["reverse_rotate"] = true
 	--config["das_last_key"] = false
@@ -39,8 +41,6 @@ function love.load()
 end
 
 function initModules()
-	-- replays are not loaded here, but they are cleared
-	replays = {}
 	game_modes = {}
 	mode_list = love.filesystem.getDirectoryItems("tetris/modes")
 	for i=1,#mode_list do
@@ -61,6 +61,32 @@ function initModules()
 	return tostring(a.name):gsub("%d+",padnum) < tostring(b.name):gsub("%d+",padnum) end)
 	table.sort(rulesets, function(a,b)
 	return tostring(a.name):gsub("%d+",padnum) < tostring(b.name):gsub("%d+",padnum) end)
+end
+
+loaded_replays = false
+
+local io_thread
+
+function loadReplayList()
+	replays = {}
+	replay_tree = {{name = "All"}}
+	dict_ref = {}
+	loaded_replays = false
+	collectgarbage("collect")
+
+	--proper disposal to avoid some memory problems
+	if io_thread then
+		io_thread:release()
+		love.thread.getChannel( 'replay' ):clear()
+		love.thread.getChannel( 'loaded_replays' ):clear()
+	end
+
+	io_thread = love.thread.newThread( replay_load_code )
+	for key, value in pairs(game_modes) do
+		dict_ref[value.name] = key + 1
+		replay_tree[key + 1] = {name = value.name}
+	end
+	io_thread:start()
 end
 
 function love.draw()
@@ -306,6 +332,7 @@ function love.run()
 			for name, a,b,c,d,e,f in love.event.poll() do
 				if name == "quit" then
 					if not love.quit or not love.quit() then
+						if io_thread then io_thread:release() end
 						return a or 0
 					end
 				end
