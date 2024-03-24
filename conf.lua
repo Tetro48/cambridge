@@ -1,9 +1,9 @@
 function love.conf(t)
-	t.identity = "cambridge"
+	t.identity = "cambridge-arcade"
 
 	t.console = true
 
-	t.window.title = "Cambridge"
+	t.window.title = "Cambridge: Arcade"
 	t.window.width = 640
 	t.window.height = 480
 	t.window.icon = "res/img/cambridge_icon.png"

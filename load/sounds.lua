@@ -31,6 +31,7 @@ sound_paths = {
 	go = "res/se/go.wav",
 	irs = "res/se/irs.wav",
 	ihs = "res/se/ihs.wav",
+	insert_credits = "res/se/credit.wav",
 	-- a secret sound!
 	welcome = "res/se/welcomeToCambridge.wav",
 }

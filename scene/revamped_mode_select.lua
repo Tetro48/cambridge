@@ -6,6 +6,14 @@ function ModeSelectScene:new()
 	-- reload custom modules
 	initModules()
 	if highscores == nil then highscores = {} end
+	if game_credits == 0 then
+		self.out_of_credits = true
+	end
+	if config.gamesettings.free_play == 1 then
+		game_credits = math.max(game_credits - 1, 0)
+		show_credits_time = 180
+	end
+	self.selection_timer = 31*60
 	self.game_mode_folder = game_modes
 	self.game_mode_selections = {game_modes}
 	self.ruleset_folder = rulesets
@@ -84,12 +92,46 @@ function ModeSelectScene:getMenuARR(number)
 	return math.ceil(32 / math.sqrt(number))
 end
 
+function ModeSelectScene:ifFolderIsEmptyOrOnlyContainsFolders(folder)
+	if #folder == 0 then
+		return true
+	end
+	for key, value in pairs(folder) do
+		if not value.is_directory then
+			return false
+		end
+	end
+	return true
+end
+
 function ModeSelectScene:update()
 	switchBGM(nil)
+	if self.out_of_credits then
+		scene = TitleScene()
+	end
+	self.selection_timer = self.selection_timer - 1
+
 	self.safety_frames = self.safety_frames - 1
+	if self.selection_timer <= 0 and not self.starting then
+		while self:ifFolderIsEmptyOrOnlyContainsFolders(self.game_mode_folder) do
+			self:menuGoBack("mode")
+		end
+		while self:ifFolderIsEmptyOrOnlyContainsFolders(self.ruleset_folder) do
+			self:menuGoBack("ruleset")
+		end
+		while self.game_mode_folder[self.menu_state.mode].is_directory and
+		     #self.game_mode_folder[self.menu_state.mode] == 0 do
+			self:changeMode(-1)
+		end
+		while self.ruleset_folder[self.menu_state.ruleset].is_directory and
+		     #self.ruleset_folder[self.menu_state.ruleset] == 0 do
+			self:changeRuleset(-1)
+		end
+		self:indirectStartMode()
+	end
 	if self.starting then
 		self.start_frames = self.start_frames + 1
-		if self.start_frames > 60 or config.visualsettings.mode_entry == 1 then
+		if self.start_frames > 30 or config.visualsettings.mode_entry == 1 then
 			self:startMode()
 		end
 		return
@@ -136,13 +178,11 @@ end
 function ModeSelectScene:render()
 	drawBackground(0)
 
-	love.graphics.setFont(font_3x5_4)
-	local b = cursorHighlight(0, 40, 50, 30)
-	love.graphics.setColor(1, 1, b, 1)
-	love.graphics.printf("<-", 0, 40, 50, "center")
+	love.graphics.setFont(font_8x11)
+	love.graphics.print(math.max(0, math.floor(self.selection_timer / 60)), 80, 14)
+	love.graphics.print("SELECT MODE ", 30, 44)
 	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setFont(font_3x5_2)
-	love.graphics.draw(misc_graphics["select_mode"], 50, 44)
 
 	if self.display_warning then
 		love.graphics.setFont(font_3x5_3)
@@ -295,6 +335,7 @@ function ModeSelectScene:indirectStartMode()
 		return
 	end
 	playSE("mode_decide")
+	self.selection_timer = 0
 	if config.visualsettings.mode_entry == 1 then
 		self:startMode()
 	else
@@ -370,6 +411,7 @@ function ModeSelectScene:onInputPress(e)
 		unloadModules()
 		scene = ModeSelectScene()
 		scene.reload_time_remaining = 90
+		scene.selection_timer = self.selection_timer
 		playSE("ihs")
 	end
 	if (e.input or e.scancode) and (self.display_warning or #self.game_mode_folder == 0 or #self.ruleset_folder == 0) then
@@ -381,23 +423,18 @@ function ModeSelectScene:onInputPress(e)
 			self:menuGoBack("ruleset")
 		end
 	elseif e.input == "menu_back" then
-		local has_started = self.starting
 		if self.starting then
-			self.starting = false
-			self.start_frames = 0
 			return
 		end
-		playSE("menu_cancel")
 		if #self.game_mode_selections > 1 then
+			playSE("menu_cancel")
 			self:menuGoBack("mode")
 			return
 		end
 		if #self.ruleset_folder_selections > 1 then
+			playSE("menu_cancel")
 			self:menuGoBack("ruleset")
 			return
-		end
-		if not has_started then
-			self:exitScene()
 		end
 	elseif e.type == "mouse" then
 		if e.y < 80 then
@@ -492,6 +529,10 @@ function ModeSelectScene:onInputRelease(e)
 end
 
 function ModeSelectScene:refreshHighscores()
+	if self.game_mode_folder[self.menu_state.mode] == nil or self.ruleset_folder[self.menu_state.ruleset] == nil then
+		self.mode_highscore = nil
+		return
+	end
 	if self.game_mode_folder[self.menu_state.mode].hash == nil or self.ruleset_folder[self.menu_state.ruleset].hash == nil then
 		self.mode_highscore = nil
 		return

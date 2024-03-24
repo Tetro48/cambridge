@@ -9,6 +9,7 @@ local menu_screens = {
 	AudioConfigScene,
 	TuningScene,
 	ResourcePackScene,
+	ExitScene,
 }
 
 local settingsidle = {
@@ -21,6 +22,11 @@ local settingsidle = {
 
 function SettingsScene:new()
 	self.menu_state = 1
+	if config.gamesettings.free_play == 2 then
+		game_credits = 9
+	else
+		game_credits = 0
+	end
 	DiscordRPC:update({
 		details = "In settings",
 		state = settingsidle[love.math.random(#settingsidle)],
@@ -36,7 +42,7 @@ function SettingsScene:render()
 	drawBackground("options_game")
 
 	love.graphics.setFont(font_8x11)
-	love.graphics.print("SETTINGS", 80, 43)
+	love.graphics.print("TEST MODE", 80, 43)
 
 	local b = cursorHighlight(20, 40, 50, 30)
 	love.graphics.setColor(1, 1, b, 1)
@@ -47,14 +53,14 @@ function SettingsScene:render()
 	love.graphics.print("Here, you can change some settings that change\nthe look and feel of the game.", 80, 90)
 
 	love.graphics.setColor(1, 1, 1, 0.5)
-	love.graphics.rectangle("fill", 75, 118 + 50 * self.menu_state, 200, 33)
+	love.graphics.rectangle("fill", 75, 118 + 40 * self.menu_state, 200, 33)
 
 	love.graphics.setFont(font_3x5_3)
 	love.graphics.setColor(1, 1, 1, 1)
 	for i, screen in pairs(menu_screens) do
-		local b = cursorHighlight(80,110 + 50 * i,200,50)
+		local b = cursorHighlight(80,110 + 40 * i,200,50)
 		love.graphics.setColor(1,1,b,1)
-		love.graphics.printf(screen.title, 80, 120 + 50 * i, 200, "left")
+		love.graphics.printf(screen.title, 80, 120 + 40 * i, 200, "left")
 	end
 end
 
@@ -71,8 +77,8 @@ function SettingsScene:onInputPress(e)
 			scene = TitleScene()
 		end
 		if e.x > 75 and e.x < 275 then
-			if e.y > 160 and e.y < 160 + #menu_screens * 50 then
-				self.menu_state = math.floor((e.y - 110) / 50)
+			if e.y > 150 and e.y < 150 + #menu_screens * 40 then
+				self.menu_state = math.floor((e.y - 110) / 40)
 				playSE("main_decide")
 				scene = menu_screens[self.menu_state]()
 			end

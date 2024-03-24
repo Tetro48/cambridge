@@ -117,7 +117,7 @@ function CreditsScene:update()
     self.time = self.time + (time_fragment * self.scroll_speed)
     if self.time >= self.final_y + (time_fragment * 120) then
         playSE("mode_decide")
-        scene = TitleScene()
+        scene = TitleScene.main_menu_screens[1]()
         pitchBGM(1)
         switchBGM(nil)
     elseif self.time >= self.final_y then
@@ -163,7 +163,7 @@ function CreditsScene:onInputPress(e)
             self.scroll_speed = self.hold_speed
             pitchBGM(self.hold_speed)
         elseif e.button == 2 then
-            scene = TitleScene()
+            scene = TitleScene.main_menu_screens[1]()
             pitchBGM(1)
             switchBGM(nil)
         end
@@ -173,7 +173,7 @@ function CreditsScene:onInputPress(e)
         pitchBGM(self.hold_speed)
     end
     if e.input == "menu_decide" or e.input == "menu_back" then
-        scene = TitleScene()
+        scene = TitleScene.main_menu_screens[1]()
         pitchBGM(1)
         switchBGM(nil)
 	end

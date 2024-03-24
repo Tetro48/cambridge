@@ -144,7 +144,7 @@ function initConfig()
 	config.sound_sources = config.audiosettings.sound_sources
 
 	if not config.input then
-		scene = TutorialKeybinder()
+		scene = InputConfigScene()
 	else
 		if config.input.keys then
 			if config.input.joysticks == nil then

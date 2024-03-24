@@ -11,7 +11,7 @@ ConfigScene.options = {
 		config_name = "display_gamemode",
 		display_name = "Display Info",
 		options = {"On", "Off"},
-		description = "Shows some game info.\nWhile playing (depends on gamemode): <mode_name> - <ruleset_name>\nIf enabled or on title screen: (<target_fps>) <fps> fps - <version>"
+		description = "Shows some game info.\nWhile playing (depends on gamemode): <mode_name> - <ruleset_name>\nIf on or on title screen: (<target_fps>) <fps> fps - <credits>/FREE PLAY"
 	},
 	{
 		config_name = "smooth_movement",

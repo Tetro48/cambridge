@@ -64,6 +64,12 @@ LICP: Last Input Controlled Priority. First button is inactive unless opposing/l
 		options = {"Full", "Date"},
 		description = "Full: <mode_name> - <ruleset_name> - <date_time>.crp\nDate: <date_time>.crp"
 	},
+	{
+		config_name = "free_play",
+		display_name = "Free Play",
+		options = {"Off", "On"},
+		description = "Free play toggle."
+	}
 }
 local optioncount = #ConfigScene.options
 

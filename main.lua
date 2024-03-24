@@ -3,6 +3,7 @@
 random = love.math.random
 math.random = love.math.random
 math.randomseed = love.math.setRandomSeed
+local show_fps_change_time = 0
 
 function love.load()
 	love.graphics.setDefaultFilter("linear", "nearest")
@@ -13,6 +14,8 @@ function love.load()
 	love.graphics.clear()
 	math.randomseed(os.time())
 	highscores = {}
+	game_credits = 0
+	show_credits_time = 0
 	require "load.rpc"
 	require "load.graphics"
 	require "load.sounds"
@@ -36,8 +39,13 @@ function love.load()
 	-- used for screenshots
 	GLOBAL_CANVAS = love.graphics.newCanvas()
 
+	if type(config) == "table" and type(config.gamesettings) == "table" and config.gamesettings.free_play == 2 then
+		game_credits = 9
+	end
+
 	-- init config
 	initConfig()
+
 
 	love.window.setFullscreen(config["fullscreen"])
 
@@ -348,12 +356,29 @@ function love.draw()
 	local bottom_right_corner_y_offset = 0
 	love.graphics.setFont(font_3x5_2)
 	love.graphics.setColor(1, 1, 1, 1)
-	if config.visualsettings.display_gamemode == 1 or scene.title == "Title" then
+	if config.visualsettings.display_gamemode == 1 or scene.title == "Title" or
+	   (config.gamesettings.free_play == 1 and show_credits_time > 0) then
 		bottom_right_corner_y_offset = bottom_right_corner_y_offset + 20
+		if config.gamesettings.free_play == 2 then
+			love.graphics.printf(
+				string.format("(%g) %.2f fps - FREE PLAY", getTargetFPS(), 1.0 / avg_delta),
+				0, 480 - bottom_right_corner_y_offset, 635, "right"
+			)
+		else
+			love.graphics.printf(
+				string.format("(%g) %.2f fps - %d credits", getTargetFPS(), 1.0 / avg_delta, game_credits),
+				0, 480 - bottom_right_corner_y_offset, 635, "right"
+			)
+		end
+	end
+	if show_fps_change_time > 0 then
+		bottom_right_corner_y_offset = bottom_right_corner_y_offset + 20
+		love.graphics.setColor(1, 1, 1, math.min(1, show_fps_change_time / 30))
 		love.graphics.printf(
-			string.format("(%g) %.2f fps - %s", getTargetFPS(), 1.0 / avg_delta, version),
+			string.format("Target FPS is set to %g", getTargetFPS()),
 			0, 480 - bottom_right_corner_y_offset, 635, "right"
 		)
+		love.graphics.setColor(1, 1, 1, 1)
 	end
 	if config.visualsettings.debug_level > 1 then
 		bottom_right_corner_y_offset = bottom_right_corner_y_offset + 18
@@ -393,6 +418,8 @@ function love.draw()
 			0, 480 - bottom_right_corner_y_offset, 635, "right"
 		)
 	end
+	show_credits_time = show_credits_time - 1
+	show_fps_change_time = show_fps_change_time - 1
 end
 
 local function multipleInputs(input_table, input)
@@ -500,6 +527,16 @@ function love.directorydropped(dir)
 	love.filesystem.unmount(dir)
 end
 
+local function insertCredits(credits)
+	credits = credits or 1
+	playSE("insert_credits")
+	game_credits = math.min(game_credits + credits, 9)
+	show_credits_time = 180
+	if scene.title == "Title" then
+		scene.press_enter_text = "PUSH START BUTTON"
+	end
+end
+
 ---@param key string|nil
 ---@param scancode string|nil
 function love.keypressed(key, scancode)
@@ -508,19 +545,10 @@ function love.keypressed(key, scancode)
 		config["fullscreen"] = not config["fullscreen"]
 		saveConfig()
 		love.window.setFullscreen(config["fullscreen"])
-	elseif scancode == "f1" then
-		TAS_mode = not TAS_mode
 	elseif scancode == "f2" and scene.title ~= "Input Config" and scene.title ~= "Game" and scene.title ~= "Replay" then
-		scene = InputConfigScene()
+		scene = SettingsScene()
 		switchBGM(nil)
 		loadSave()
-	elseif scancode == "f3" then
-		print("The old way of framestepping is deprecated!")
-	-- load state tool
-	elseif scancode == "f4" and TAS_mode and (scene.title == "Replay") then
-		love.thread.getChannel("savestate"):push( "save" )
-	elseif scancode == "f5" and TAS_mode and (scene.title == "Replay") then
-		love.thread.getChannel("savestate"):push( "load" )
 	-- secret sound playing :eyes:
 	elseif scancode == "f8" and scene.title == "Title" then
 		config.secret = not config.secret
@@ -553,6 +581,10 @@ function love.keypressed(key, scancode)
 		if config.input and config.input.keys then
 			result_inputs = multipleInputs(config.input.keys, scancode)
 			for _, input in pairs(result_inputs) do
+				if input == "insert_credits" then
+					insertCredits(1)
+					input = nil
+				end
 				scene:onInputPress({input=input, type="key", key=key, scancode=scancode})
 				key = nil
 				scancode = nil
@@ -599,6 +631,10 @@ function love.joystickpressed(joystick, button)
 			result_inputs = multipleInputs(config.input.joysticks[joystick:getName()], "buttons-"..button)
 		end
 		for _, input in pairs(result_inputs) do
+			if input == "insert_credits" then
+				insertCredits(1)
+				input = nil
+			end
 			scene:onInputPress({input=input, type="joybutton", name=joystick:getName(), button=button})
 		end
 	end
@@ -635,6 +671,10 @@ function love.joystickaxis(joystick, axis, value)
 		if config.input and config.input.joysticks and config.input.joysticks[joystick:getName()] then
 			result_inputs = multipleInputs(config.input.joysticks[joystick:getName()],"axes-"..axis.."-"..(value >= 1 and "positive" or "negative"))
 			for _, input in pairs(result_inputs) do
+				if input == "insert_credits" then
+					insertCredits(1)
+					input = nil
+				end
 				scene:onInputPress({input=input, type="joyaxis", name=joystick:getName(), axis=axis, value=value})
 			end
 			-- scene:onInputPress({input=input_pressed, type="joyaxis", name=joystick:getName(), axis=axis, value=value})
@@ -825,6 +865,7 @@ local FRAME_DURATION = 1.0 / TARGET_FPS
 
 ---@param fps number
 function setTargetFPS(fps)
+	show_fps_change_time = math.max(show_fps_change_time, 120)
 	if fps <= 0 or fps == math.huge then
 		TARGET_FPS = math.huge
 		return

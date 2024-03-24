@@ -33,6 +33,7 @@ function GameScene:new(game_mode, ruleset, inputs)
 	self.game.pause_count = 0
 	self.game.pause_time = 0
 	self.game.pause_timestamps = {}
+	self.game_over_frames = 0
 	self.frame_steps = 0
 	DiscordRPC:update({
 		details = self.game.rpc_details,
@@ -42,6 +43,13 @@ function GameScene:new(game_mode, ruleset, inputs)
 end
 
 function GameScene:update()
+	if self.no_credits_left then
+		switchBGM(nil)
+		self.game:onExit()
+		scene = config.visualsettings.mode_select_type == 1 and ModeSelectScene() or RevModeSelectScene()
+		scene.lack_of_credit_time = 120
+		return
+	end
 	if self.paused and self.frame_steps == 0 then
 		self.game.pause_time = self.game.pause_time + love.timer.getDelta() / (1/60)
 	else
@@ -60,6 +68,12 @@ function GameScene:update()
 			state = self.game.name,
 			largeImageKey = "ingame-"..self.game:getBackground().."00"
 		})
+		if self.game.game_over or self.game.completed then
+			self.game_over_frames = self.game_over_frames + 1
+			if self.game_over_frames > 420 then
+				scene = ContinueScene()
+			end
+		end
 	end
 end
 
@@ -102,33 +116,27 @@ function GameScene:onInputPress(e)
 		switchBGM(nil)
 		self.game:onExit()
 		sortReplays()
-		scene = e.input == "retry" and GameScene(self.retry_mode, self.retry_ruleset, self.secret_inputs) or
-				config.visualsettings.mode_select_type == 1 and ModeSelectScene() or RevModeSelectScene()
+		scene = ContinueScene()
 		scene.safety_frames = 2
 	elseif e.input == "frame_step" and TAS_mode then
 		self.frame_steps = self.frame_steps + 1
 	elseif e.input == "retry" then
+		if game_credits == 0 then
+			return
+		end
+		if config.gamesettings.free_play == 1 then
+			game_credits = game_credits - 1
+			show_credits_time = 180
+		end
 		switchBGM(nil)
 		pitchBGM(1)
 		self.game:onExit()
 		scene = GameScene(self.retry_mode, self.retry_ruleset, self.secret_inputs)
 	elseif e.input == "pause" and not (self.game.game_over or self.game.completed) then
-		self.paused = not self.paused
-		if self.paused then
-			pauseBGM()
-			table.insert(self.game.pause_timestamps, self.game.frames)
-			self.game.pause_count = self.game.pause_count + 1
-		else
-			resumeBGM()
-		end
 	elseif e.input == "mode_exit" then
 		switchBGM(nil)
 		self.game:onExit()
-		if config.visualsettings.mode_select_type == 1 then
-			scene = ModeSelectScene()
-		else
-			scene = RevModeSelectScene()
-		end
+		scene = ContinueScene()
 		scene.safety_frames = 2
 	elseif e.input and string.sub(e.input, 1, 5) ~= "menu_" and e.input ~= "frame_step" then
 		self.inputs[e.input] = true

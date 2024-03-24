@@ -3,6 +3,7 @@ local HighscoreScene = Scene:extend()
 HighscoreScene.title = "Highscores"
 
 function HighscoreScene:new()
+	self.prev_scene = scene
 	self.hash_table = {}
 	for hash, value in pairs(highscores) do
 		table.insert(self.hash_table, hash)
@@ -24,6 +25,8 @@ function HighscoreScene:new()
 	self.auto_menu_offset = 0
 	self.index_count = 0
 
+	self.idle_frames = 0
+
 	DiscordRPC:update({
 		details = "In menus",
 		state = "Peeking their own highscores",
@@ -31,6 +34,10 @@ function HighscoreScene:new()
 	})
 end
 function HighscoreScene:update()
+	self.idle_frames = self.idle_frames + 1
+	if self.idle_frames > 300 then
+		self:back()
+	end
 	if self.auto_menu_offset ~= 0 then
 		self:changeOption(self.auto_menu_offset < 0 and -1 or 1)
 		if self.auto_menu_offset > 0 then self.auto_menu_offset = self.auto_menu_offset - 1 end
@@ -193,8 +200,11 @@ function HighscoreScene:render()
 end
 
 function HighscoreScene:onInputPress(e)
+	if e.type ~= "mouse_move" then
+		self.idle_frames = 0
+	end
 	if (self.display_warning or self.display_error) and e.input then
-		scene = TitleScene()
+		scene = self.prev_scene
 	elseif e.type == "wheel" then
 		if e.y ~= 0 then
 			self:changeOption(-e.y)
@@ -266,7 +276,7 @@ function HighscoreScene:back()
 		self.interpolated_menu_slot_positions = {}
 		self.index_count = 0
 	else
-		scene = TitleScene()
+		scene = self.prev_scene
 	end
 end
 

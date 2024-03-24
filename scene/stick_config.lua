@@ -18,7 +18,6 @@ local configurable_inputs = {
 	"rotate_180",
 	"hold",
 	"retry",
-	"pause",
 	"mode_exit",
 	"frame_step",
 	"generic_1",
