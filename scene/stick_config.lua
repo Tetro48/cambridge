@@ -19,7 +19,6 @@ local configurable_inputs = {
 	"hold",
 	"retry",
 	"mode_exit",
-	"frame_step",
 	"generic_1",
 	"generic_2",
 	"generic_3",

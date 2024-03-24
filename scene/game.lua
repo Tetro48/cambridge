@@ -118,8 +118,6 @@ function GameScene:onInputPress(e)
 		sortReplays()
 		scene = ContinueScene()
 		scene.safety_frames = 2
-	elseif e.input == "frame_step" and TAS_mode then
-		self.frame_steps = self.frame_steps + 1
 	elseif e.input == "retry" then
 		if game_credits == 0 then
 			return

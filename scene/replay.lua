@@ -212,8 +212,6 @@ function ReplayScene:onInputPress(e)
 	 	)
 		scene.safety_frames = 2
 		savestate_frames = nil
-	elseif e.input == "frame_step" and (TAS_mode or not self.rerecord) then
-		self.frame_steps = self.frame_steps + 1
 	elseif e.input == "pause" and not (self.game.game_over or self.game.completed) then
 		self.paused = not self.paused
 		if self.paused then pauseBGM()
