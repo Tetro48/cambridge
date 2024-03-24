@@ -23,6 +23,7 @@ local configurable_inputs = {
 	"generic_2",
 	"generic_3",
 	"generic_4",
+	"insert_credits",
 }
 
 local input_naming = {
@@ -46,6 +47,7 @@ local input_naming = {
 	generic_2 = "Generic 2",
 	generic_3 = "Generic 3",
 	generic_4 = "Generic 4",
+	insert_credits = "Insert Credits",
 }
 
 --A list of inputs that shouldn't have the same keybinds with the other.
