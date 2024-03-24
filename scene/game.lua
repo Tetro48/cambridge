@@ -70,7 +70,13 @@ function GameScene:update()
 		})
 		if self.game.game_over or self.game.completed then
 			self.game_over_frames = self.game_over_frames + 1
-			if self.game_over_frames > 420 then
+			if self.game_over_frames > 420 and not self.is_exiting then
+				local highscore_entry = self.game:getHighscoreData()
+				local highscore_hash = self.game.hash .. "-" .. self.ruleset.hash
+				submitHighscore(highscore_hash, highscore_entry)
+				switchBGM(nil)
+				self.game:onExit()
+				self.is_exiting = true
 				scene = ContinueScene()
 			end
 		end
@@ -103,7 +109,7 @@ local opposite_directions = {left = "right", right = "left", up = "down", down =
 
 function GameScene:onInputPress(e)
 	if (
-		self.game.game_over or self.game.completed
+		self.game.game_over or self.game.completed and not self.is_exiting
 	) and (
 		e.input == "menu_decide" or
 		e.input == "menu_back" or
@@ -115,6 +121,7 @@ function GameScene:onInputPress(e)
 		submitHighscore(highscore_hash, highscore_entry)
 		switchBGM(nil)
 		self.game:onExit()
+		self.is_exiting = true
 		sortReplays()
 		scene = ContinueScene()
 		scene.safety_frames = 2
